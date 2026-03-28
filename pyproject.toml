@@ -1,0 +1,33 @@
+[project]
+name = "sapix-filename"
+version = "0.1.0"
+description = "CLI tool to auto-name SAPIX PDF files and validate page numbering"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+  "PyMuPDF>=1.23.0",
+  "openai>=1.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.0.0",
+  "reportlab>=4.0.0",
+]
+
+[project.scripts]
+sapix-filename = "sapix_filename.cli:main"
+
+[tool.pytest.ini_options]
+addopts = "-q"
+testpaths = ["tests"]
+
+[build-system]
+requires = ["setuptools>=69.0.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
