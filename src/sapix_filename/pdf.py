@@ -10,6 +10,7 @@ from sapix_filename.ai import (
     extract_cover_id_from_png,
     extract_document_tag_from_pngs,
     extract_footer_page_number_from_png,
+    extract_gs_token_from_png,
     extract_math_basic_test_token_from_png,
     extract_subject_from_png,
 )
@@ -19,6 +20,15 @@ from sapix_filename.errors import PageNumberValidationError
 
 _FILENAME_TOKEN_RE = re.compile(
     r"\b(((?:[A-Z]{1,2}\d{0,4}[A-Z]?\d?|\d{2,4}[A-Z]?\d?)-\d{2}|\d{4,6}))\b",
+    re.IGNORECASE,
+)
+
+
+_GS_TRIGGER_TEXT_RE = re.compile(r"GS特訓")
+
+
+_GS_TOKEN_TEXT_RE = re.compile(
+    r"(?<![A-Za-z0-9])(GTK-\d{2}[①-⑳]?|GS-\d{2}|\d{2}[①-⑳]?)(?![A-Za-z0-9①-⑳])",
     re.IGNORECASE,
 )
 
@@ -39,7 +49,7 @@ def _choose_best_filename_token(candidates: list[str]) -> str | None:
     if not candidates:
         return None
 
-    def score(tok: str) -> tuple[int, int, int]:
+    def score(tok: str) -> tuple[int, int, int, int]:
         has_prefix_letter = 1 if re.match(r"^[A-Z]{1,2}\d{3}-\d{2}$", tok, re.IGNORECASE) else 0
         hyphen = 1 if "-" in tok else 0
         digits = sum(1 for c in tok if c.isdigit())
@@ -47,6 +57,10 @@ def _choose_best_filename_token(candidates: list[str]) -> str | None:
         return (has_prefix_letter, hyphen, digits, -length)
 
     return sorted(candidates, key=score, reverse=True)[0]
+
+
+def _extract_filename_tokens(text: str) -> list[str]:
+    return [match.group(1) for match in _FILENAME_TOKEN_RE.finditer(text)]
 
 
 def _page_region_to_png_bytes(page: fitz.Page, rect: fitz.Rect, *, zoom: float = 3.0) -> bytes:
@@ -100,19 +114,58 @@ def propose_filename_stem(
     ai_model: str = "gpt-5.4-mini",
     api_key_env: str = "OPENAI_API_KEY",
 ) -> str | None:
+    first_page_png: bytes | None = None
     with fitz.open(pdf_path) as doc:
         if doc.page_count < 1:
             return None
         first_page = doc.load_page(0)
         text = first_page.get_text("text")
+        if enable_ai:
+            first_page_png = _page_region_to_png_bytes(first_page, first_page.rect, zoom=3.0)
+
+    if _GS_TRIGGER_TEXT_RE.search(text):
+        m_gs = _GS_TOKEN_TEXT_RE.search(text)
+        if m_gs:
+            tok = m_gs.group(1).upper()
+            if tok.startswith("GTK-"):
+                return f"算数{tok}"
+            m_subj = _SUBJECT_TEXT_RE.search(text)
+            subject = m_subj.group(1) if m_subj else None
+            if subject:
+                return f"{subject}{tok}"
+            return tok
+    elif enable_ai and first_page_png is not None:
+        try:
+            gs_tok = extract_gs_token_from_png(
+                first_page_png,
+                model=ai_model,
+                api_key_env=api_key_env,
+            )
+        except AiExtractionError:
+            gs_tok = None
+        if gs_tok is not None:
+            gs_tok = gs_tok.upper()
+            if gs_tok.startswith("GTK-"):
+                return f"算数{gs_tok}"
+            try:
+                subject = extract_subject_from_png(
+                    first_page_png,
+                    model=ai_model,
+                    api_key_env=api_key_env,
+                )
+            except AiExtractionError:
+                subject = None
+            if subject:
+                return f"{subject}{gs_tok}"
+            return gs_tok
 
     m = _MATH_BASIC_TEST_TEXT_RE.search(text)
     if m:
         return f"算数基礎力定着テスト{m.group(1)}"
 
-    matches = _FILENAME_TOKEN_RE.findall(text)
+    matches = _extract_filename_tokens(text)
     if matches:
-        tok = _choose_best_filename_token([m[0] if isinstance(m, tuple) else m for m in matches])
+        tok = _choose_best_filename_token(matches)
         if tok is None:
             return None
 
@@ -125,13 +178,11 @@ def propose_filename_stem(
     if not enable_ai:
         return None
 
-    with fitz.open(pdf_path) as doc:
-        first_page = doc.load_page(0)
-        page_rect = first_page.rect
-        png_bytes = _page_region_to_png_bytes(first_page, page_rect, zoom=3.0)
+    if first_page_png is None:
+        return None
 
     token = extract_math_basic_test_token_from_png(
-        png_bytes,
+        first_page_png,
         model=ai_model,
         api_key_env=api_key_env,
     )
@@ -139,7 +190,7 @@ def propose_filename_stem(
         return f"算数基礎力定着テスト{token}"
 
     cover_id = extract_cover_id_from_png(
-        png_bytes,
+        first_page_png,
         model=ai_model,
         api_key_env=api_key_env,
     )
@@ -147,7 +198,7 @@ def propose_filename_stem(
         if cover_id.upper().startswith("WS-"):
             try:
                 subject = extract_subject_from_png(
-                    png_bytes,
+                    first_page_png,
                     model=ai_model,
                     api_key_env=api_key_env,
                 )

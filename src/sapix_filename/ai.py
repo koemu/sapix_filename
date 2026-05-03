@@ -24,6 +24,12 @@ _COVER_ID_RE = re.compile(
 _MATH_BASIC_TEST_RE = re.compile(r"\b(\d{2}[①-⑳])\b")
 
 
+_GS_TOKEN_RE = re.compile(
+    r"(?<![A-Za-z0-9])(GTK-\d{2}[①-⑳]?|GS-\d{2}|\d{2}[①-⑳]?)(?![A-Za-z0-9①-⑳])",
+    re.IGNORECASE,
+)
+
+
 _SUBJECT_RE = re.compile(r"(国語|算数|理科|社会)")
 
 
@@ -98,6 +104,61 @@ def extract_document_tag_from_pngs(
     if normalized == "ANSWER":
         return "Answer"
     return None
+
+
+def extract_gs_token_from_png(
+    png_bytes: bytes,
+    *,
+    model: str,
+    api_key_env: str,
+) -> str | None:
+    client = _get_client(api_key_env)
+
+    prompt = (
+        "You are reading the first page of a scanned Japanese study handout. "
+        "If the page contains the phrase 'GS特訓', extract the token that follows it. "
+        "Accepted formats: 'GTK-01①' (GTK followed by two digits and optional circled number), or 'GS-01' (GS followed by two digits). "
+        "Return ONLY the token (e.g., GTK-01①, GS-01). If the phrase is not present or you cannot find the token, return 'NONE'."
+    )
+
+    try:
+        resp = client.responses.create(
+            model=model,
+            input=[
+                {
+                    "role": "user",
+                    "content": [
+                        {"type": "input_text", "text": prompt},
+                        {"type": "input_image", "image_url": _image_data_url(png_bytes)},
+                    ],
+                }
+            ],
+        )
+    except RateLimitError as e:
+        raise AiExtractionError(
+            "OpenAI API quota/rate limit exceeded. "
+            "Either wait, add billing, or disable AI features. "
+            f"Details: {e}"
+        ) from e
+    except AuthenticationError as e:
+        raise AiExtractionError(
+            "OpenAI API authentication failed. Check your API key. "
+            f"Details: {e}"
+        ) from e
+    except (APIConnectionError, APIError) as e:
+        raise AiExtractionError(
+            "OpenAI API request failed. Please retry later. "
+            f"Details: {e}"
+        ) from e
+
+    text = (resp.output_text or "").strip()
+    if not text or text.upper() == "NONE":
+        return None
+
+    m = _GS_TOKEN_RE.search(text)
+    if not m:
+        return None
+    return m.group(1).upper()
 
 
 def extract_math_basic_test_token_from_png(

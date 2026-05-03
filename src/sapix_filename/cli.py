@@ -74,7 +74,10 @@ def main(argv: list[str] | None = None) -> int:
         print(str(pdf_path.name))
         return 0
 
-    if stem.startswith("算数基礎力定着テスト"):
+    _NO_TAG_PREFIXES = ("算数基礎力定着テスト", "算数GTK-", "社会GS-", "国語GS-", "理科GS-", "算数GS-")
+    if stem.startswith(_NO_TAG_PREFIXES) or (
+        any(p in stem for p in ("GTK-", "GS-")) and not stem.startswith("H")
+    ):
         tag_part = ""
     else:
         tag = detect_filename_tag(
