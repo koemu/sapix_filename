@@ -69,6 +69,55 @@ def test_propose_filename_stem_ws_subject(tmp_path: Path) -> None:
     assert propose_filename_stem(pdf, enable_ai=False) == "国語WS-01"
 
 
+def test_propose_filename_stem_gs_tokun_gtk(tmp_path: Path) -> None:
+    pdf = tmp_path / "input.pdf"
+    c = canvas.Canvas(str(pdf))
+    _ensure_japanese_font_registered()
+    c.setFont(_JP_FONT, 12)
+    c.drawString(72, 750, "GS特訓")
+    c.drawString(72, 730, "GTK-01①")
+    c.showPage()
+    c.save()
+    assert propose_filename_stem(pdf, enable_ai=False) == "算数GTK-01①"
+
+
+def test_propose_filename_stem_gs_tokun_gs_with_subject(tmp_path: Path) -> None:
+    pdf = tmp_path / "input.pdf"
+    c = canvas.Canvas(str(pdf))
+    _ensure_japanese_font_registered()
+    c.setFont(_JP_FONT, 12)
+    c.drawString(72, 750, "GS特訓")
+    c.drawString(72, 730, "社会GS-01")
+    c.showPage()
+    c.save()
+    assert propose_filename_stem(pdf, enable_ai=False) == "社会GS-01"
+
+
+def test_propose_filename_stem_gs_tokun_bare_number(tmp_path: Path) -> None:
+    pdf = tmp_path / "input.pdf"
+    c = canvas.Canvas(str(pdf))
+    _ensure_japanese_font_registered()
+    c.setFont(_JP_FONT, 12)
+    c.drawString(72, 750, "GS特訓")
+    c.drawString(72, 730, "社会")
+    c.drawString(72, 710, "01")
+    c.showPage()
+    c.save()
+    assert propose_filename_stem(pdf, enable_ai=False) == "社会01"
+
+
+def test_propose_filename_stem_gs_tokun_gs_no_subject(tmp_path: Path) -> None:
+    pdf = tmp_path / "input.pdf"
+    c = canvas.Canvas(str(pdf))
+    _ensure_japanese_font_registered()
+    c.setFont(_JP_FONT, 12)
+    c.drawString(72, 750, "GS特訓")
+    c.drawString(72, 730, "GS-01")
+    c.showPage()
+    c.save()
+    assert propose_filename_stem(pdf, enable_ai=False) == "GS-01"
+
+
 def test_validate_page_numbers_ok_with_missing_numbers(tmp_path: Path) -> None:
     pdf = tmp_path / "input.pdf"
     _make_pdf(pdf, token="350-01", page_numbers=[1, None, 2, 3])

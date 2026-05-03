@@ -105,6 +105,61 @@ def test_cli_prints_exam_tag(tmp_path: Path, capsys) -> None:
     assert out == f'mv "{src}" "{dst}"'
 
 
+def test_cli_prints_gs_tokun_gtk(tmp_path: Path, capsys) -> None:
+    pdf = tmp_path / "orig.pdf"
+    c = canvas.Canvas(str(pdf))
+    _ensure_japanese_font_registered()
+    c.setFont(_JP_FONT, 12)
+    c.drawString(72, 750, "GS特訓")
+    c.drawString(72, 730, "GTK-01①")
+    c.showPage()
+    c.save()
+
+    rc = main(["--no-ai", str(pdf)])
+    assert rc == 0
+    out = capsys.readouterr().out.strip()
+    src = pdf.resolve()
+    dst = src.with_name("算数GTK-01①_orig.pdf")
+    assert out == f'mv "{src}" "{dst}"'
+
+
+def test_cli_prints_gs_tokun_gs_with_subject(tmp_path: Path, capsys) -> None:
+    pdf = tmp_path / "orig.pdf"
+    c = canvas.Canvas(str(pdf))
+    _ensure_japanese_font_registered()
+    c.setFont(_JP_FONT, 12)
+    c.drawString(72, 750, "GS特訓")
+    c.drawString(72, 730, "社会GS-01")
+    c.showPage()
+    c.save()
+
+    rc = main(["--no-ai", str(pdf)])
+    assert rc == 0
+    out = capsys.readouterr().out.strip()
+    src = pdf.resolve()
+    dst = src.with_name("社会GS-01_orig.pdf")
+    assert out == f'mv "{src}" "{dst}"'
+
+
+def test_cli_gs_tokun_no_tag_even_with_answer_text(tmp_path: Path, capsys) -> None:
+    pdf = tmp_path / "orig.pdf"
+    c = canvas.Canvas(str(pdf))
+    _ensure_japanese_font_registered()
+    c.setFont(_JP_FONT, 12)
+    c.drawString(72, 750, "GS特訓")
+    c.drawString(72, 730, "社会GS-01")
+    c.drawString(72, 710, "解答と解説")
+    c.showPage()
+    c.save()
+
+    rc = main(["--no-ai", str(pdf)])
+    assert rc == 0
+    out = capsys.readouterr().out.strip()
+    src = pdf.resolve()
+    dst = src.with_name("社会GS-01_orig.pdf")
+    assert out == f'mv "{src}" "{dst}"'
+
+
 def test_cli_prints_second_format_math_basic_test(tmp_path: Path, capsys) -> None:
     pdf = tmp_path / "orig.pdf"
     c = canvas.Canvas(str(pdf))

@@ -10,6 +10,7 @@ from sapix_filename.ai import (
     extract_cover_id_from_png,
     extract_document_tag_from_pngs,
     extract_footer_page_number_from_png,
+    extract_gs_token_from_png,
     extract_math_basic_test_token_from_png,
     extract_subject_from_png,
 )
@@ -19,6 +20,15 @@ from sapix_filename.errors import PageNumberValidationError
 
 _FILENAME_TOKEN_RE = re.compile(
     r"\b(((?:[A-Z]{1,2}\d{0,4}[A-Z]?\d?|\d{2,4}[A-Z]?\d?)-\d{2}|\d{4,6}))\b",
+    re.IGNORECASE,
+)
+
+
+_GS_TRIGGER_TEXT_RE = re.compile(r"GS特訓")
+
+
+_GS_TOKEN_TEXT_RE = re.compile(
+    r"(?<![A-Za-z0-9])(GTK-\d{2}[①-⑳]?|GS-\d{2}|\d{2}[①-⑳]?)(?![A-Za-z0-9①-⑳])",
     re.IGNORECASE,
 )
 
@@ -112,6 +122,42 @@ def propose_filename_stem(
         text = first_page.get_text("text")
         if enable_ai:
             first_page_png = _page_region_to_png_bytes(first_page, first_page.rect, zoom=3.0)
+
+    if _GS_TRIGGER_TEXT_RE.search(text):
+        m_gs = _GS_TOKEN_TEXT_RE.search(text)
+        if m_gs:
+            tok = m_gs.group(1).upper()
+            if tok.startswith("GTK-"):
+                return f"算数{tok}"
+            m_subj = _SUBJECT_TEXT_RE.search(text)
+            subject = m_subj.group(1) if m_subj else None
+            if subject:
+                return f"{subject}{tok}"
+            return tok
+    elif enable_ai and first_page_png is not None:
+        try:
+            gs_tok = extract_gs_token_from_png(
+                first_page_png,
+                model=ai_model,
+                api_key_env=api_key_env,
+            )
+        except AiExtractionError:
+            gs_tok = None
+        if gs_tok is not None:
+            gs_tok = gs_tok.upper()
+            if gs_tok.startswith("GTK-"):
+                return f"算数{gs_tok}"
+            try:
+                subject = extract_subject_from_png(
+                    first_page_png,
+                    model=ai_model,
+                    api_key_env=api_key_env,
+                )
+            except AiExtractionError:
+                subject = None
+            if subject:
+                return f"{subject}{gs_tok}"
+            return gs_tok
 
     m = _MATH_BASIC_TEST_TEXT_RE.search(text)
     if m:
