@@ -86,6 +86,28 @@ def test_cli_prints_question_tag(tmp_path: Path, capsys) -> None:
     assert out == f'mv "{src}" "{dst}"'
 
 
+def test_cli_prints_question_tag_when_phrase_has_spaces(tmp_path: Path, capsys) -> None:
+    pdf = tmp_path / "orig.pdf"
+    c = canvas.Canvas(str(pdf))
+    c.setFont("Helvetica", 14)
+    c.drawString(72, 750, "350-01")
+    _ensure_japanese_font_registered()
+    c.setFont(_JP_FONT, 12)
+    c.drawString(72, 700, "国語")
+    c.drawString(72, 680, "問題 ・")
+    c.drawString(72, 660, "解答用紙")
+    c.drawString(72, 640, "解答と解説")
+    c.showPage()
+    c.save()
+
+    rc = main(["--no-ai", str(pdf)])
+    assert rc == 0
+    out = capsys.readouterr().out.strip()
+    src = pdf.resolve()
+    dst = src.with_name("350-01_Question_orig.pdf")
+    assert out == f'mv "{src}" "{dst}"'
+
+
 def test_cli_prints_exam_tag(tmp_path: Path, capsys) -> None:
     pdf = tmp_path / "orig.pdf"
     c = canvas.Canvas(str(pdf))

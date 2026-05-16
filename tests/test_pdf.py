@@ -171,6 +171,22 @@ def test_detect_filename_tag_question(tmp_path: Path) -> None:
     assert detect_filename_tag(pdf) == "Question"
 
 
+def test_detect_filename_tag_question_with_spaced_phrase_before_answer(tmp_path: Path) -> None:
+    pdf = tmp_path / "input.pdf"
+    c = canvas.Canvas(str(pdf))
+    c.setFont("Helvetica", 14)
+    c.drawString(72, 750, "350-01")
+    _ensure_japanese_font_registered()
+    c.setFont(_JP_FONT, 12)
+    c.drawString(72, 700, "国語")
+    c.drawString(72, 680, "問題 ・")
+    c.drawString(72, 660, "解答用紙")
+    c.drawString(72, 640, "解答と解説")
+    c.showPage()
+    c.save()
+    assert detect_filename_tag(pdf) == "Question"
+
+
 def test_detect_filename_tag_exam(tmp_path: Path) -> None:
     pdf = tmp_path / "input.pdf"
     c = canvas.Canvas(str(pdf))

@@ -25,7 +25,6 @@
 - .env.local を編集しない
 - .env を編集しない
 - AGENTS.md を編集しない
-- PLAN.md を編集しない
 
 ## 権限
 
