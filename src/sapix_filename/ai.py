@@ -58,7 +58,8 @@ def extract_document_tag_from_pngs(
     prompt = (
         "You are classifying a scanned Japanese study handout. Determine which label applies.\n"
         "- If the document contains the phrase '入試演習問題', return 'Exam'.\n"
-        "- Else if the document contains the phrase '国語' AND also contains '問題・解答用紙', return 'Question'.\n"
+        "- Else if the document contains the phrase '国語' AND also contains '問題・解答用紙', return 'Question'. "
+        "Treat spaces or line breaks inside '問題・解答用紙' as the same phrase.\n"
         "- Else if the document contains the phrase '解答と解説', return 'Answer'.\n"
         "- Else return 'NONE'.\n"
         "Return ONLY one of: Exam, Question, Answer, NONE."

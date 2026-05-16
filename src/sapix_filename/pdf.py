@@ -39,6 +39,10 @@ _MATH_BASIC_TEST_TEXT_RE = re.compile(r"算数基礎力定着テスト\s*(\d{2}[
 _SUBJECT_TEXT_RE = re.compile(r"(国語|算数|理科|社会)")
 
 
+def _normalize_tag_text(text: str) -> str:
+    return re.sub(r"\s+", "", text)
+
+
 @dataclass(frozen=True)
 class PdfAnalysis:
     proposed_stem: str | None
@@ -83,11 +87,12 @@ def detect_filename_tag(
             all_text_parts.append(page.get_text("text"))
 
         all_text = "\n".join(all_text_parts)
-        if "入試演習問題" in all_text:
+        normalized_tag_text = _normalize_tag_text(all_text)
+        if "入試演習問題" in normalized_tag_text:
             return "Exam"
-        if "国語" in all_text and "問題・解答用紙" in all_text:
+        if "国語" in normalized_tag_text and "問題・解答用紙" in normalized_tag_text:
             return "Question"
-        if "解答と解説" in all_text:
+        if "解答と解説" in normalized_tag_text:
             return "Answer"
 
         if not enable_ai:
