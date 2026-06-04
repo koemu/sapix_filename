@@ -56,11 +56,14 @@ def extract_document_tag_from_pngs(
 
     client = _get_client(api_key_env)
     prompt = (
-        "You are classifying a scanned Japanese study handout. Determine which label applies.\n"
-        "- If the document contains the phrase '入試演習問題', return 'Exam'.\n"
-        "- Else if the document contains the phrase '国語' AND also contains '問題・解答用紙', return 'Question'. "
+        "You are classifying only the cover page of a scanned Japanese study handout. Determine which label applies.\n"
+        "- If the cover page contains the phrase '入試演習問題', return 'Exam'.\n"
+        "- Else if the cover page contains the phrase '国語' AND also contains '問題・解答用紙', return 'Question'. "
         "Treat spaces or line breaks inside '問題・解答用紙' as the same phrase.\n"
-        "- Else if the document contains the phrase '解答と解説' or '解答解説', return 'Answer'.\n"
+        "- Else if the cover page explicitly contains an answer/explanation heading, return 'Answer'. "
+        "Accept only headings where '解答' and '解説' are adjacent or separated only by 'と', '・', spaces, or line breaks, "
+        "such as '解答と解説', '解答解説', or '解答・解説'. "
+        "Do not infer Answer from general explanatory text, the lesson topic, photos, diagrams, later pages, or words like '裁判'/'審査'.\n"
         "- Else return 'NONE'.\n"
         "Return ONLY one of: Exam, Question, Answer, NONE."
     )

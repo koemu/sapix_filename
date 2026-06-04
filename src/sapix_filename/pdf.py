@@ -42,6 +42,9 @@ _SUBJECT_TEXT_RE = re.compile(r"(国語|算数|理科|社会)")
 DEFAULT_AI_MODEL = "gpt-5.4"
 
 
+_ANSWER_TAG_TEXT_RE = re.compile(r"解答[と・]?解説")
+
+
 def _normalize_tag_text(text: str) -> str:
     return re.sub(r"\s+", "", text)
 
@@ -84,28 +87,24 @@ def detect_filename_tag(
     api_key_env: str = "OPENAI_API_KEY",
 ) -> str | None:
     with fitz.open(pdf_path) as doc:
-        all_text_parts: list[str] = []
-        for i in range(doc.page_count):
-            page = doc.load_page(i)
-            all_text_parts.append(page.get_text("text"))
+        if doc.page_count < 1:
+            return None
+        cover_page = doc.load_page(0)
+        cover_text = cover_page.get_text("text")
 
-        all_text = "\n".join(all_text_parts)
-        normalized_tag_text = _normalize_tag_text(all_text)
+        normalized_tag_text = _normalize_tag_text(cover_text)
         if "入試演習問題" in normalized_tag_text:
             return "Exam"
         if "国語" in normalized_tag_text and "問題・解答用紙" in normalized_tag_text:
             return "Question"
-        if "解答と解説" in normalized_tag_text or "解答解説" in normalized_tag_text:
+        if _ANSWER_TAG_TEXT_RE.search(normalized_tag_text):
             return "Answer"
 
         if not enable_ai:
             return None
 
         try:
-            png_pages: list[bytes] = []
-            for i in range(min(doc.page_count, 3)):
-                page = doc.load_page(i)
-                png_pages.append(_page_region_to_png_bytes(page, page.rect, zoom=2.5))
+            png_pages = [_page_region_to_png_bytes(cover_page, cover_page.rect, zoom=2.5)]
             return extract_document_tag_from_pngs(
                 png_pages,
                 model=ai_model,

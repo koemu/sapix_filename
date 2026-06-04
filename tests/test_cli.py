@@ -91,6 +91,25 @@ def test_cli_prints_answer_tag_without_to(tmp_path: Path, capsys) -> None:
     assert out == f'mv "{src}" "{dst}"'
 
 
+def test_cli_prints_answer_tag_with_middle_dot(tmp_path: Path, capsys) -> None:
+    pdf = tmp_path / "orig.pdf"
+    c = canvas.Canvas(str(pdf))
+    c.setFont("Helvetica", 14)
+    c.drawString(72, 750, "350-01")
+    _ensure_japanese_font_registered()
+    c.setFont(_JP_FONT, 12)
+    c.drawString(72, 700, "解答・解説")
+    c.showPage()
+    c.save()
+
+    rc = main(["--no-ai", str(pdf)])
+    assert rc == 0
+    out = capsys.readouterr().out.strip()
+    src = pdf.resolve()
+    dst = src.with_name("350-01_Answer_orig.pdf")
+    assert out == f'mv "{src}" "{dst}"'
+
+
 def test_cli_prints_question_tag(tmp_path: Path, capsys) -> None:
     pdf = tmp_path / "orig.pdf"
     c = canvas.Canvas(str(pdf))
