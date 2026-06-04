@@ -146,8 +146,10 @@ sapix-filename --no-ai /path/to/orig.pdf
 
 ### 使用モデルを変更
 
+デフォルトの AI モデルは `gpt-5.4` です。必要に応じて `--ai-model` で変更できます。
+
 ```bash
-sapix-filename --ai-model gpt-5.4-mini /path/to/orig.pdf
+sapix-filename --ai-model gpt-5.4 /path/to/orig.pdf
 ```
 
 ## ページ番号の精査

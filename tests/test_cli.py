@@ -6,7 +6,8 @@ from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.cidfonts import UnicodeCIDFont
 from reportlab.pdfgen import canvas
 
-from sapix_filename.cli import main
+from sapix_filename.cli import _parse_args, main
+from sapix_filename.pdf import DEFAULT_AI_MODEL
 
 
 _JP_FONT = "HeiseiKakuGo-W5"
@@ -35,6 +36,11 @@ def _make_pdf(path: Path, *, token: str | None) -> None:
     c.drawString(300, 30, "3")
     c.showPage()
     c.save()
+
+
+def test_parse_args_uses_default_ai_model() -> None:
+    ns = _parse_args(["orig.pdf"])
+    assert ns.ai_model == DEFAULT_AI_MODEL
 
 
 def test_cli_prints_original_name_when_no_token(tmp_path: Path, capsys) -> None:

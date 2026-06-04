@@ -6,6 +6,7 @@ from pathlib import Path
 
 from sapix_filename.errors import AiExtractionError
 from sapix_filename.errors import PageNumberValidationError
+from sapix_filename.pdf import DEFAULT_AI_MODEL
 from sapix_filename.pdf import detect_filename_tag, propose_filename_stem, validate_page_numbers
 
 
@@ -29,7 +30,7 @@ def _parse_args(argv: list[str]) -> argparse.Namespace:
     )
     p.add_argument(
         "--ai-model",
-        default="gpt-5.4-mini",
+        default=DEFAULT_AI_MODEL,
         help="OpenAI model name for vision extraction",
     )
     p.add_argument(

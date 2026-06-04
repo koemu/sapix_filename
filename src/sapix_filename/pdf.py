@@ -39,6 +39,9 @@ _MATH_BASIC_TEST_TEXT_RE = re.compile(r"算数基礎力定着テスト\s*(\d{2}[
 _SUBJECT_TEXT_RE = re.compile(r"(国語|算数|理科|社会)")
 
 
+DEFAULT_AI_MODEL = "gpt-5.4"
+
+
 def _normalize_tag_text(text: str) -> str:
     return re.sub(r"\s+", "", text)
 
@@ -77,7 +80,7 @@ def detect_filename_tag(
     pdf_path: Path,
     *,
     enable_ai: bool = False,
-    ai_model: str = "gpt-5.4-mini",
+    ai_model: str = DEFAULT_AI_MODEL,
     api_key_env: str = "OPENAI_API_KEY",
 ) -> str | None:
     with fitz.open(pdf_path) as doc:
@@ -116,7 +119,7 @@ def propose_filename_stem(
     pdf_path: Path,
     *,
     enable_ai: bool = True,
-    ai_model: str = "gpt-5.4-mini",
+    ai_model: str = DEFAULT_AI_MODEL,
     api_key_env: str = "OPENAI_API_KEY",
 ) -> str | None:
     first_page_png: bytes | None = None
@@ -241,7 +244,7 @@ def validate_page_numbers(
     pdf_path: Path,
     *,
     enable_ai: bool = False,
-    ai_model: str = "gpt-5.4-mini",
+    ai_model: str = DEFAULT_AI_MODEL,
     api_key_env: str = "OPENAI_API_KEY",
 ) -> None:
     with fitz.open(pdf_path) as doc:
