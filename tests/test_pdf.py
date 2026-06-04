@@ -157,6 +157,101 @@ def test_detect_filename_tag_answer(tmp_path: Path) -> None:
     assert detect_filename_tag(pdf) == "Answer"
 
 
+def test_detect_filename_tag_answer_without_to(tmp_path: Path) -> None:
+    pdf = tmp_path / "input.pdf"
+    c = canvas.Canvas(str(pdf))
+    c.setFont("Helvetica", 14)
+    c.drawString(72, 750, "350-01")
+    _ensure_japanese_font_registered()
+    c.setFont(_JP_FONT, 12)
+    c.drawString(72, 700, "解答解説")
+    c.showPage()
+    c.save()
+    assert detect_filename_tag(pdf) == "Answer"
+
+
+def test_detect_filename_tag_answer_with_middle_dot(tmp_path: Path) -> None:
+    pdf = tmp_path / "input.pdf"
+    c = canvas.Canvas(str(pdf))
+    c.setFont("Helvetica", 14)
+    c.drawString(72, 750, "350-01")
+    _ensure_japanese_font_registered()
+    c.setFont(_JP_FONT, 12)
+    c.drawString(72, 700, "解答・解説")
+    c.showPage()
+    c.save()
+    assert detect_filename_tag(pdf) == "Answer"
+
+
+def test_detect_filename_tag_does_not_infer_answer_from_topic_words(tmp_path: Path) -> None:
+    pdf = tmp_path / "input.pdf"
+    c = canvas.Canvas(str(pdf))
+    c.setFont("Helvetica", 14)
+    c.drawString(72, 750, "640-13")
+    _ensure_japanese_font_registered()
+    c.setFont(_JP_FONT, 12)
+    c.drawString(72, 700, "三権分立")
+    c.drawString(72, 680, "内閣と裁判所")
+    c.drawString(72, 660, "最高裁判所裁判官の国民審査")
+    c.showPage()
+    c.save()
+    assert detect_filename_tag(pdf, enable_ai=False) is None
+
+
+def test_detect_filename_tag_ignores_answer_text_after_cover(tmp_path: Path) -> None:
+    pdf = tmp_path / "input.pdf"
+    c = canvas.Canvas(str(pdf))
+    c.setFont("Helvetica", 14)
+    c.drawString(72, 750, "640-13")
+    _ensure_japanese_font_registered()
+    c.setFont(_JP_FONT, 12)
+    c.drawString(72, 700, "デイリーサピックス")
+    c.drawString(72, 680, "小学6年 社会")
+    c.showPage()
+    c.setFont(_JP_FONT, 12)
+    c.drawString(72, 700, "今回の学習内容")
+    c.drawString(72, 680, "解答と解説")
+    c.drawString(72, 660, "テキストの中に出てきた問題の答えです。")
+    c.showPage()
+    c.save()
+    assert detect_filename_tag(pdf, enable_ai=False) is None
+
+
+def test_detect_filename_tag_sends_only_cover_to_ai(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    pdf = tmp_path / "input.pdf"
+    c = canvas.Canvas(str(pdf))
+    c.setFont("Helvetica", 14)
+    c.drawString(72, 750, "640-13")
+    c.showPage()
+    _ensure_japanese_font_registered()
+    c.setFont(_JP_FONT, 12)
+    c.drawString(72, 700, "解答と解説")
+    c.showPage()
+    c.save()
+
+    page_counts: list[int] = []
+
+    def fake_extract_document_tag_from_pngs(
+        png_pages: list[bytes],
+        *,
+        model: str,
+        api_key_env: str,
+    ) -> None:
+        page_counts.append(len(png_pages))
+        return None
+
+    monkeypatch.setattr(
+        "sapix_filename.pdf.extract_document_tag_from_pngs",
+        fake_extract_document_tag_from_pngs,
+    )
+
+    assert detect_filename_tag(pdf, enable_ai=True) is None
+    assert page_counts == [1]
+
+
 def test_detect_filename_tag_question(tmp_path: Path) -> None:
     pdf = tmp_path / "input.pdf"
     c = canvas.Canvas(str(pdf))
