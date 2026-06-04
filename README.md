@@ -120,7 +120,7 @@ H350-01_orig.pdf
 
 | 条件 | タグ | 出力例 |
 |---|---|---|
-| `解答と解説` を含む | `_Answer_` | `H350-01_Answer_orig.pdf` |
+| `解答と解説` または `解答解説` を含む | `_Answer_` | `H350-01_Answer_orig.pdf` |
 | `国語` かつ `問題・解答用紙` を含む | `_Question_` | `H350-01_Question_orig.pdf` |
 | `入試演習問題` を含む | `_Exam_` | `61-01_Exam_orig.pdf` |
 

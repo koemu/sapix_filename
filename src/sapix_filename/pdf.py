@@ -95,7 +95,7 @@ def detect_filename_tag(
             return "Exam"
         if "国語" in normalized_tag_text and "問題・解答用紙" in normalized_tag_text:
             return "Question"
-        if "解答と解説" in normalized_tag_text:
+        if "解答と解説" in normalized_tag_text or "解答解説" in normalized_tag_text:
             return "Answer"
 
         if not enable_ai:

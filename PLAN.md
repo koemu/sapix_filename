@@ -42,7 +42,7 @@
 - テキスト番号が読み取れた場合、後続の処理を行います。
 - このテキスト番号と元のファイル名をファイル名として設定します。例: H350-01_orig.pdf, WS-01_orig.pdf, 62A-01_orig.pdf, 640-01_orig.pdf, 61-01_orig.pdf
 - テキスト番号が WS から始まる場合、表紙にある教科の情報を探してファイル名に含めます。 例: 国語WS-01_orig.pdf
-- 表紙の中に「解答と解説」と記述がある場合、ファイル名は次の通りにしてください。例: H350-01_Answer_orig.pdf, WS-01_Answer_orig.pdf, 62A-01_Answer_orig.pdf, 640-01_Answer_orig.pdf, 61-01_Answer_orig.pdf
+- 表紙の中に「解答と解説」または「解答解説」と記述がある場合、ファイル名は次の通りにしてください。例: H350-01_Answer_orig.pdf, WS-01_Answer_orig.pdf, 62A-01_Answer_orig.pdf, 640-01_Answer_orig.pdf, 61-01_Answer_orig.pdf
 - 表紙の中に「国語」さらに「問題・解答用紙」と記述がある場合、ファイル名は次の通りにしてください。例: H350-01_Question_orig.pdf, WS-01_Question_orig.pdf, 62A-01_Question_orig.pdf
 - 「問題・解答用紙」は、PDF の文字抽出時に空白や改行が混ざった場合も同じ文言として扱ってください。
 - 表紙の中に「入試演習問題」と記述がある場合、ファイル名は次の通りにしてください。例: 61-01_Exam_orig.pdf
