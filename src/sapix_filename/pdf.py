@@ -7,12 +7,10 @@ from pathlib import Path
 import fitz  # PyMuPDF
 
 from sapix_filename.ai import (
-    extract_cover_id_from_png,
+    CoverFields,
+    extract_cover_fields_from_png,
     extract_document_tag_from_pngs,
     extract_footer_page_number_from_png,
-    extract_gs_token_from_png,
-    extract_math_basic_test_token_from_png,
-    extract_subject_from_png,
 )
 from sapix_filename.errors import AiExtractionError
 from sapix_filename.errors import PageNumberValidationError
@@ -130,6 +128,21 @@ def propose_filename_stem(
         if enable_ai:
             first_page_png = _page_region_to_png_bytes(first_page, first_page.rect, zoom=3.0)
 
+    cover_fields: CoverFields | None = None
+
+    def ai_cover_fields() -> CoverFields:
+        nonlocal cover_fields
+        if cover_fields is None:
+            try:
+                cover_fields = extract_cover_fields_from_png(
+                    first_page_png,
+                    model=ai_model,
+                    api_key_env=api_key_env,
+                )
+            except AiExtractionError:
+                cover_fields = CoverFields(None, None, None, None)
+        return cover_fields
+
     if _GS_TRIGGER_TEXT_RE.search(text):
         m_gs = _GS_TOKEN_TEXT_RE.search(text)
         if m_gs:
@@ -142,26 +155,11 @@ def propose_filename_stem(
                 return f"{subject}{tok}"
             return tok
     elif enable_ai and first_page_png is not None:
-        try:
-            gs_tok = extract_gs_token_from_png(
-                first_page_png,
-                model=ai_model,
-                api_key_env=api_key_env,
-            )
-        except AiExtractionError:
-            gs_tok = None
+        gs_tok = ai_cover_fields().gs_token
         if gs_tok is not None:
-            gs_tok = gs_tok.upper()
             if gs_tok.startswith("GTK-"):
                 return f"算数{gs_tok}"
-            try:
-                subject = extract_subject_from_png(
-                    first_page_png,
-                    model=ai_model,
-                    api_key_env=api_key_env,
-                )
-            except AiExtractionError:
-                subject = None
+            subject = ai_cover_fields().subject
             if subject:
                 return f"{subject}{gs_tok}"
             return gs_tok
@@ -188,32 +186,17 @@ def propose_filename_stem(
     if first_page_png is None:
         return None
 
-    token = extract_math_basic_test_token_from_png(
-        first_page_png,
-        model=ai_model,
-        api_key_env=api_key_env,
-    )
+    token = ai_cover_fields().math_token
     if token is not None:
         return f"算数基礎力定着テスト{token}"
 
-    cover_id = extract_cover_id_from_png(
-        first_page_png,
-        model=ai_model,
-        api_key_env=api_key_env,
-    )
+    cover_id = ai_cover_fields().cover_id
     if cover_id is not None:
-        if cover_id.upper().startswith("WS-"):
-            try:
-                subject = extract_subject_from_png(
-                    first_page_png,
-                    model=ai_model,
-                    api_key_env=api_key_env,
-                )
-            except AiExtractionError:
-                subject = None
+        if cover_id.startswith("WS-"):
+            subject = ai_cover_fields().subject
             if subject:
-                return f"{subject}{cover_id.upper()}"
-        return cover_id.upper()
+                return f"{subject}{cover_id}"
+        return cover_id
 
     return None
 
