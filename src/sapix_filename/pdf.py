@@ -39,7 +39,7 @@ _MATH_BASIC_TEST_TEXT_RE = re.compile(r"算数基礎力定着テスト\s*(\d{2}[
 _SUBJECT_TEXT_RE = re.compile(r"(国語|算数|理科|社会)")
 
 
-DEFAULT_AI_MODEL = "gpt-5.4"
+DEFAULT_AI_MODEL = "gpt-5.6-luna"
 
 
 _ANSWER_TAG_TEXT_RE = re.compile(r"解答[と・]?解説")
