@@ -160,7 +160,7 @@ def extract_cover_fields_from_png(
         '- "math_token": if the page contains the exact phrase \'算数基礎力定着テスト\', the token that follows it: '
         "two digits and a circled number like '06①'. Otherwise null.\n"
         '- "cover_id": the identifier printed inside a rectangular box on the cover. '
-        "Formats include: 'H350-01', '62A-01', 'WS-01', '640-01', '61-01'. Otherwise null.\n"
+        "Formats include: 'H350-01', '62A-01', 'WS-01', 'SS-01', '640-01', '61-01'. Otherwise null.\n"
         '- "subject": the subject if present. Allowed: 国語, 算数, 理科, 社会. Otherwise null.\n'
         "Return ONLY the JSON object, no markdown fences, no extra text."
     )
