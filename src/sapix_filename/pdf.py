@@ -174,7 +174,7 @@ def propose_filename_stem(
         if tok is None:
             return None
 
-        if tok.upper().startswith("WS-"):
+        if tok.upper().startswith(("WS-", "SS-")):
             m_subj = _SUBJECT_TEXT_RE.search(text)
             if m_subj:
                 return f"{m_subj.group(1)}{tok.upper()}"
@@ -192,7 +192,7 @@ def propose_filename_stem(
 
     cover_id = ai_cover_fields().cover_id
     if cover_id is not None:
-        if cover_id.startswith("WS-"):
+        if cover_id.startswith(("WS-", "SS-")):
             subject = ai_cover_fields().subject
             if subject:
                 return f"{subject}{cover_id}"
