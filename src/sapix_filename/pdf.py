@@ -17,7 +17,7 @@ from sapix_filename.errors import PageNumberValidationError
 
 
 _FILENAME_TOKEN_RE = re.compile(
-    r"\b(((?:[A-Z]{1,2}\d{0,4}[A-Z]?\d?|\d{2,4}[A-Z]?\d?)-\d{2}|\d{4,6}))\b",
+    r"\b(((?:[A-Z]{1,4}\d{0,4}[A-Z]?\d?|\d{2,4}[A-Z]?\d?)-\d{2}|\d{4,6}))\b",
     re.IGNORECASE,
 )
 

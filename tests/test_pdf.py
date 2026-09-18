@@ -81,6 +81,16 @@ def test_propose_filename_stem_ss_subject(tmp_path: Path) -> None:
     assert propose_filename_stem(pdf, enable_ai=False) == "算数SS-01"
 
 
+def test_propose_filename_stem_sswk_example(tmp_path: Path) -> None:
+    pdf = tmp_path / "input.pdf"
+    c = canvas.Canvas(str(pdf))
+    c.setFont("Helvetica", 14)
+    c.drawString(72, 750, "SSWK-01")
+    c.showPage()
+    c.save()
+    assert propose_filename_stem(pdf, enable_ai=False) == "SSWK-01"
+
+
 def test_propose_filename_stem_gs_tokun_gtk(tmp_path: Path) -> None:
     pdf = tmp_path / "input.pdf"
     c = canvas.Canvas(str(pdf))
