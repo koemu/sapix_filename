@@ -40,8 +40,8 @@ def _make_pdf(path: Path, *, token: str | None) -> None:
 
 def test_parse_args_uses_default_ai_model() -> None:
     ns = _parse_args(["orig.pdf"])
-    assert DEFAULT_AI_MODEL == "gpt-5.6-luna"
-    assert ns.ai_model == "gpt-5.6-luna"
+    assert DEFAULT_AI_MODEL == "gpt-6.0-luna"
+    assert ns.ai_model == "gpt-6.0-luna"
 
 
 def test_cli_prints_original_name_when_no_token(tmp_path: Path, capsys) -> None:

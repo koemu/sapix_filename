@@ -151,10 +151,10 @@ sapix-filename --no-ai /path/to/orig.pdf
 
 ### 使用モデルを変更
 
-デフォルトの AI モデルは `gpt-5.6-luna` です。必要に応じて `--ai-model` で変更できます。
+デフォルトの AI モデルは `gpt-6.0-luna` です。必要に応じて `--ai-model` で変更できます。
 
 ```bash
-sapix-filename --ai-model gpt-5.6-luna /path/to/orig.pdf
+sapix-filename --ai-model gpt-6.0-luna /path/to/orig.pdf
 ```
 
 ## ページ番号の精査
