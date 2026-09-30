@@ -99,7 +99,7 @@ H350-01_orig.pdf
 
 ### 3つ目のフォーマット（四角枠のテキスト番号）
 
-表紙の四角枠の「テキスト番号」を推定します（例: `H350-01`, `WS-01`, `SS-01`, `62A-01`, `640-01`, `61-01`）。
+表紙の四角枠の「テキスト番号」を推定します（例: `H350-01`, `WS-01`, `SS-01`, `SSWK-01`, `62A-01`, `640-01`, `61-01`）。
 
 ```text
 H350-01_orig.pdf
@@ -151,10 +151,10 @@ sapix-filename --no-ai /path/to/orig.pdf
 
 ### 使用モデルを変更
 
-デフォルトの AI モデルは `gpt-5.6-luna` です。必要に応じて `--ai-model` で変更できます。
+デフォルトの AI モデルは `gpt-6.0-luna` です。必要に応じて `--ai-model` で変更できます。
 
 ```bash
-sapix-filename --ai-model gpt-5.6-luna /path/to/orig.pdf
+sapix-filename --ai-model gpt-6.0-luna /path/to/orig.pdf
 ```
 
 ## ページ番号の精査
